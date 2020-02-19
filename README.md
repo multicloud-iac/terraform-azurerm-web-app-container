@@ -14,7 +14,7 @@ module "web_app_container" {
   # Example source URL points to Terraform Enterprise Private Module Registry
 
   source  = "app.terraform.io/multicloud/web-app-container/azurerm"
-  version = "2.6.0"
+  version = "2.6.1"
 
   name = "hello-world"
 
