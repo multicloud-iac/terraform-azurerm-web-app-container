@@ -14,11 +14,11 @@ module "web_app_container" {
   # Example source URL points to Terraform Enterprise Private Module Registry
 
   source  = "app.terraform.io/multicloud/web-app-container/azurerm"
-  version = "1.5.0"
+  version = "2.6.0"
 
   name = "hello-world"
 
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 
   container_type = "docker"
 
@@ -26,34 +26,81 @@ module "web_app_container" {
 }
 ```
 
-## Required Inputs
+## Arguments
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `name` | `string` | The name of the web app. |
-| `resource_group_name` | `string` | The name of an existing resource group to use for the web app. |
-| `container_image` | `string` | Container image name. Example: `robpco/palacearcade:latest`. |
+| Name                       | Type     | Description                                                                                                           |
+| -------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `name`                     | `string` | The name of the web app.                                                                                              |
+| `resource_group_name`      | `string` | The name of an existing resource group to use for the web app.                                                        |
+| `plan`                     | `object` | App Service plan properties. This should be `plan` object.                                                            |
+| `container_type`           | `string` | Type of container. The options are: `docker`, `compose` and `kube`. Default: `docker`.                                |
+| `container_config`         | `string` | Configuration for the container. This should be YAML.                                                                 |
+| `container_image`          | `string` | Container image name. Example: `innovationnorway/go-hello-world:latest`.                                              |
+| `port`                     | `string` | The value of the expected container port number.                                                                      |
+| `enable_storage`           | `bool`   | Mount an SMB share to the `/home/` directory. Default: `false`.                                                       |
+| `start_time_limit`         | `string` | Configure the amount of time (in seconds) the app service will wait before it restarts the container. Default: `230`. |
+| `command`                  | `string` | A command to be run on the container.                                                                                 |
+| `app_settings`             | `map`    | Set app settings. These are avilable as environment variables at runtime.                                             |
+| `secure_app_settings`      | `map`    | Set sensitive app settings. Uses Key Vault references as values for app settings.                                     |
+| `key_vault_id`             | `string` | The ID of an existing Key Vault. Required if `secure_app_settings` is set.                                            |
+| `https_only`               | `bool`   | Redirect all traffic made to the web app using HTTP to HTTPS. Default: `true`.                                        |
+| `ftps_state`               | `string` | Set the FTPS state value the web app. The options are: `AllAllowed`, `Disabled` and `FtpsOnly`. Default: `Disabled`.  |
+| `ip_restrictions`          | `list`   | A list of IP addresses in CIDR format specifying Access Restrictions.                                                 |
+| `custom_hostnames`         | `list`   | List of custom hostnames to use for the web app.                                                                      |
+| `identity`                 | `object` | Managed service identity properties. This should be `identity` object.                                                |
+| `auth`                     | `object` | Auth settings for the web app. This should be `auth` object.                                                          |
+| `docker_registry_username` | `string` | The container registry username.                                                                                      |
+| `docker_registry_url`      | `string` | The container registry url. Default: `https://index.docker.io`                                                        |
+| `docker_registry_password` | `string` | The container registry password.                                                                                      |
+| `storage_mounts`           | `list`   | List of storage mounts for the web app.                                                                               |
+| `tags`                     | `map`    | A mapping of tags to assign to the web app.                                                                           |
 
-## Optional Inputs
+The `plan` object accepts the following keys:
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `container_type` | `string` | Type of container. The options are: `docker`, `compose` and `kube`. Default: `docker`. |
-| `container_config` | `string` | Configuration for the container. This should be YAML. |
-| `port` | `string` | The value of the expected container port number. |
-| `enable_storage` | `bool` | Mount an SMB share to the `/home/` directory. Default: `false`. |
-| `start_time_limit` | `string` | Configure the amount of time (in seconds) the app service will wait before it restarts the container. Default: `230`. |
-| `command` | `string` | A command to be run on the container. |
-| `app_settings` | `map` | Set web app settings. These are avilable as environment variables at runtime. |
-| `app_service_plan_id` | `string` | The ID of an existing app service plan to use for the web app. |
-| `sku_tier` | `string` | The pricing tier of an app service plan to use for the web app. Default: `Standard`. |
-| `sku_size` | `string` | The instance size of an app service plan to use for the web app. Default: `S1`. |
-| `always_on` | `bool` | Either `true` to ensure the web app gets loaded all the time, or `false` to to unload after being idle. |
-| `https_only` | `bool` | Redirect all traffic made to the web app using HTTP to HTTPS. Default: `true`. |
-| `ftps_state` | `string` | Set the FTPS state value the web app. The options are: `AllAllowed`, `Disabled` and `FtpsOnly`. Default: `Disabled`. |
-| `ip_restrictions` | `list` | Configure IP restrictions for the web app. |
-| `custom_hostnames` | `list` | List of custom hostnames to use for the web app. |
-| `docker_registry_username` | `string` | The container registry username. |
-| `docker_registry_url` | `string` | The container registry url. Default: `https://index.docker.io` |
-| `docker_registry_password` | `string` | The container registry password. |
-| `tags` | `map` | A mapping of tags to assign to the web app. |
+| Name       | Type     | Description                                                                                                                                     |
+| ---------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`       | `string` | The ID of an existing app service plan.                                                                                                         |
+| `name`     | `string` | The name of a new app service plan.                                                                                                             |
+| `sku_size` | `string` | The SKU size of a new app service plan. The options are: `F1`, `D1`, `B1`, `B2`, `B3`, `S1`, `S2`, `S3`, `P1v2`, `P2v2`, `P3v2`. Default: `F1`. |
+
+The `sku_size` parameter can be one of the following:
+
+| Size                   | Tier      | Description          |
+| ---------------------- | --------- | -------------------- |
+| `F1`, `Free`           | Free      | Free                 |
+| `D1`, `Shared`         | Shared    | Shared               |
+| `B1`, `B2`, `B3`       | Basic     | Small, Medium, Large |
+| `S1`, `S2`, `S3`       | Standard  | Small, Medium, Large |
+| `P1v2`, `P2v2`, `P3v2` | PremiumV2 | Small, Medium, Large |
+
+The `identity` object accepts the following keys:
+
+| Name      | Type   | Description                                                                   |
+| --------- | ------ | ----------------------------------------------------------------------------- |
+| `enabled` | `bool` | Whether managed service identity is enabled for the web app. Default: `true`. |
+| `ids`     | `list` | List of user managed identity IDs.                                            |
+
+The `storage_mounts` object accepts the following keys:
+
+| Name             | Type     | Description                                                                                    |
+| ---------------- | -------- | ---------------------------------------------------------------------------------------------- |
+| `name`           | `string` | The identifier of the storage mount.                                                           |
+| `account_name`   | `string` | The name of the storage account.                                                               |
+| `share_name`     | `string` | The name of the file share.                                                                    |
+| `container_name` | `string` | The name of the blob container. Either this or `share_name` should be specified, but not both. |
+| `mount_path`     | `string` | The path to mount the storage within the web app.                                              |
+
+The `auth` object accepts the following keys:
+
+| Name                  | Type     | Description                                                                     |
+| --------------------- | -------- | ------------------------------------------------------------------------------- |
+| `enabled`             | `bool`   | Whether authentication is enabled for the web app.                              |
+| `token_store_enabled` | `bool`   | Whether token store is enabled for the web app.                                 |
+| `active_directory`    | `object` | Azure Active Directory auth settings. This should be `active_directory` object. |
+
+The `active_directory` object accepts the following keys:
+
+| Name            | Type     | Description                               |
+| --------------- | -------- | ----------------------------------------- |
+| `client_id`     | `string` | The ID of the Azure AD application.       |
+| `client_secret` | `string` | The password of the Azure AD Application. |
