@@ -8,6 +8,11 @@ variable "resource_group_name" {
   description = "The name of an existing resource group to use for the web app."
 }
 
+variable "resource_group_location" {
+  type        = string
+  description = "Location of an existing resource group to use for the web app."
+}
+
 variable "container_type" {
   type        = string
   default     = "docker"

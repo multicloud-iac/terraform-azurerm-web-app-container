@@ -1,14 +1,14 @@
 data "azurerm_client_config" "main" {}
 
-data "azurerm_resource_group" "main" {
-  name = var.resource_group_name
-}
+# data "azurerm_resource_group" "main" {
+#   name = var.resource_group_location
+# }
 
 resource "azurerm_app_service_plan" "main" {
   count               = local.plan.id == "" ? 1 : 0
   name                = coalesce(local.plan.name, local.default_plan_name)
-  location            = data.azurerm_resource_group.main.location
-  resource_group_name = data.azurerm_resource_group.main.name
+  location            = var.resource_group_location
+  resource_group_name = var.resource_group_name
   kind                = "linux"
   reserved            = true
 
@@ -22,8 +22,8 @@ resource "azurerm_app_service_plan" "main" {
 
 resource "azurerm_app_service" "main" {
   name                = var.name
-  location            = data.azurerm_resource_group.main.location
-  resource_group_name = data.azurerm_resource_group.main.name
+  location            = var.resource_group_location
+  resource_group_name = var.resource_group_name
   app_service_plan_id = local.plan_id
 
   client_affinity_enabled = false
@@ -99,7 +99,7 @@ resource "azurerm_app_service_custom_hostname_binding" "main" {
   count               = length(var.custom_hostnames)
   hostname            = var.custom_hostnames[count.index]
   app_service_name    = azurerm_app_service.main.name
-  resource_group_name = data.azurerm_resource_group.main.name
+  resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_key_vault_access_policy" "main" {
