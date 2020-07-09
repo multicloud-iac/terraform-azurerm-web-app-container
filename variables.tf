@@ -192,7 +192,7 @@ locals {
   plan = merge({
     id       = ""
     name     = ""
-    sku_size = "D1"
+    sku_size = "S1"
   }, var.plan)
 
   plan_id = coalesce(local.plan.id, azurerm_app_service_plan.main[0].id)
